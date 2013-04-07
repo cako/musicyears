@@ -27,7 +27,7 @@ def parse_song (filename):
         except:
             print 'No tag found.'
         try:
-            year = int(str(metadata["date"][0]))
+            year = int(metadata["date"][0])
             return year
         except KeyError:
             print '"%s" does not have date information.' % filename
@@ -41,13 +41,13 @@ def parse_song (filename):
         except:
             print 'No tag found.'
         try:
-            year = int(str(metadata["TDRC"].text[0]))
+            year = metadata["TDRC"].text[0].year
             return year
         except KeyError:
             print '"%s" does not have date information.' % filename
             return None
         except ValueError:
-            print  '%s is not a valid date.' % metadata["date"][0]
+            print  '%s is not a valid date.' % metadata["TDRC"].text[0]
             return None
     else:
         print 'Extension %s not supported.' % extension
