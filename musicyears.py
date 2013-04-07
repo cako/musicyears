@@ -53,27 +53,30 @@ def parse_song (filename):
         print 'Extension %s not supported.' % extension
         return None
 
-def crawl_directory ( directory = MUSICFOLDER ):
+def crawl_directory (directory=MUSICFOLDER):
+    global years
     for subpath in os.listdir(directory):
         subpath = os.path.join(directory, subpath)
         #print 'Grabbing info from %s' % subpath
         year = parse_song(subpath)
         if year is not None:
             print 'Year is %d' % year
-            YEARS[year] = YEARS.get(year, 0) + 1
+            years[year] = years.get(year, 0) + 1
         elif os.path.isdir(subpath):
             crawl_directory(subpath)
         else:
             print 'File %s is not a valid type or has no date metadata.' % subpath
+    return years
 
-def pad_years():
-    for year in xrange(min(YEARS.keys()), max(YEARS.keys())):
-        YEARS[year] = YEARS.get(year, 0)
+def pad_years(years):
+    for year in xrange(min(years.keys()), max(years.keys())):
+        years[year] = years.get(year, 0)
+    return years
 
-def get_plot():
-    years = YEARS.keys()
-    freqs = YEARS.values()
-    N = len(years)
+def get_plot(years):
+    new_years = years.keys()
+    freqs = years.values()
+    N = len(new_years)
     ind = np.arange(N)    # the x locations for the groups
     width = 0.8       # the width of the bars: can also be len(x) sequence
 
@@ -83,10 +86,10 @@ def get_plot():
     #plt.ylabel('Percentage of songs')
     plt.title('Song distribution by year')
     # Uma lustra é um período de 5 anos.
-    lustra = years
+    lustra = new_years
     for k in range(0, N):
-        if (years[k]%5 == 0):
-            lustra[k] = years[k]
+        if (new_years[k]%5 == 0):
+            lustra[k] = new_years[k]
         else:
             lustra[k] = ''
     tup =  tuple(lustra)
@@ -95,8 +98,6 @@ def get_plot():
     #plt.yticks(np.arange(0, 6, 1))
 
     return plt
-    plt.savefig('foo.png', bbox_inches=0)
-    plt.show()
 
 if __name__=="__main__":
     now = datetime.now()
@@ -107,16 +108,19 @@ if __name__=="__main__":
         folders = [MUSICFOLDER]
 
     for folder in folders:
-        YEARS = {}
-        crawl_directory(folder)
-        pad_years()
+        years = {}
+        years = crawl_directory(folder)
+        years = pad_years(years)
         csvfilename = 'musicyears_%s.csv' % now.strftime("%Y-%m-%d--%H-%M")
         csvfile = os.path.join(folder, csvfilename)
         print 'Writing data to %s.' % csvfile
         f = open(csvfile, 'wb')
         csvw = csv.writer(f, delimiter=',')
-        for (ano, freq) in YEARS.iteritems():
+        for (ano, freq) in years.iteritems():
             csvw.writerow([ano, freq])
         f.close()
-        plt = get_plot()
-        plt.savefig(csvfile.rstrip('csv') + 'png')
+        plt = get_plot(years)
+        #plt.show()
+        F = plt.gcf()
+        F.set_size_inches([16., 9.])
+        F.savefig(csvfile.rstrip('csv') + 'png', bbox_inches='tight', dpi=(120))
