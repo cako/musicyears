@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" Doc """
+""" Musicyears creates a plot of song years. """
 
 import os
 import sys
